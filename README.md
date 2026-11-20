@@ -1,6 +1,6 @@
 # ЛР №3–5. Laravel: галерея картин
 
-Приложение «АртГалерея» на Laravel 12. Bootstrap/SCSS (галерея) и Tailwind (страницы Breeze) собираются через Laravel Mix.
+Приложение «АртГалерея» на Laravel 12. Репозиторий: https://github.com/PMDembele/laravel-art-gallery Bootstrap/SCSS (галерея) и Tailwind (страницы Breeze) собираются через Laravel Mix.
 
 - **ЛР3** — CRUD картин: миграции, Eloquent, контроллер, Blade, валидация, загрузка и обработка изображений, Soft Deletes.
 - **ЛР4** — многопользовательское приложение: Laravel Breeze, владелец картины, администратор, права доступа.
