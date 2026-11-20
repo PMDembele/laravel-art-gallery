@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
@@ -37,6 +38,12 @@ class Painting extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    // Комментарии к картине, по дате (1 — N)
+    public function comments(): HasMany
+    {
+        return $this->hasMany(Comment::class)->oldest();
     }
 
     // Проверка прав на уровне модели (Events + Closures).
