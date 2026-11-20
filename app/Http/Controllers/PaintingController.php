@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Painting;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Intervention\Image\Drivers\Gd\Driver;
@@ -14,57 +15,58 @@ use Intervention\Image\ImageManager;
 
 class PaintingController extends Controller
 {
-    // Список всех картин (маршрут GET /paintings)
+    // Список всех картин всех пользователей (GET /paintings)
     public function index()
     {
-        $paintings = Painting::all();
+        $paintings = Painting::with('user')->latest()->get();
         return view('paintings.index', compact('paintings'));
     }
 
     // Форма добавления новой картины (GET /paintings/create)
     public function create()
     {
+        Gate::authorize('create-painting');
         return view('paintings.create');
     }
 
-    // Сохранение новой картины в базе данных (POST /paintings)
+    // Сохранение новой картины (POST /paintings).
+    // user_id записывается в модели (событие creating) из текущего пользователя.
     public function store(Request $request)
     {
-        // Проверка данных на стороне сервера
+        Gate::authorize('create-painting');
         $data = $this->validateData($request);
 
-        // Если загружено изображение, сохраняем его в storage/app/public/paintings
-        if ($request->hasFile('image')) {
-       $data['image'] = $this->saveImage($request->file('image'));
-        } else {
-            unset($data['image']);
-        }
+        $data['image'] = $this->saveImage($request->file('image'));
 
-        Painting::create($data);
+        $painting = $request->user()->paintings()->create($data);
 
-        return redirect()->route('paintings.index')->with('success', 'Картина добавлена');
+        return redirect()->route('users.show', $request->user())
+            ->with('success', 'Картина «' . $painting->title . '» добавлена');
     }
 
     // Страница с подробной информацией о картине (GET /paintings/{painting})
     public function show(Painting $painting)
     {
+        $painting->load('user');
         return view('paintings.show', compact('painting'));
     }
 
-    // Форма редактирования картины (GET /paintings/{painting}/edit)
+    // Форма редактирования (GET /paintings/{painting}/edit) — автор или администратор
     public function edit(Painting $painting)
     {
+        Gate::authorize('update-painting', $painting);
         return view('paintings.edit', compact('painting'));
     }
 
-    // Сохранение изменений (PUT /paintings/{painting})
+    // Сохранение изменений (PUT /paintings/{painting}) — автор или администратор
     public function update(Request $request, Painting $painting)
     {
+        Gate::authorize('update-painting', $painting);
         $data = $this->validateData($request, $painting);
 
         // Если выбран новый файл, заменяем изображение
         if ($request->hasFile('image')) {
-$data['image'] = $this->saveImage($request->file('image'));
+            $data['image'] = $this->saveImage($request->file('image'));
         } else {
             unset($data['image']); // иначе остаётся старое изображение
         }
@@ -74,7 +76,7 @@ $data['image'] = $this->saveImage($request->file('image'));
         return redirect()->route('paintings.show', $painting)->with('success', 'Картина обновлена');
     }
 
-    // Проверка дубликата для формы (GET /paintings/check-duplicate?title=…&author=…&ignore=id)
+    // Проверка дубликата для формы (GET /paintings/check-duplicate?title=…&ignore=id)
     public function checkDuplicate(Request $request)
     {
         $title = trim((string) $request->query('title', ''));
@@ -88,13 +90,38 @@ $data['image'] = $this->saveImage($request->file('image'));
         ]);
     }
 
-    // Удаление картины (DELETE /paintings/{painting}), «мягкое» удаление (Soft Delete)
+    // Мягкое удаление (DELETE /paintings/{painting}) — автор или администратор
     public function destroy(Painting $painting)
     {
+        Gate::authorize('delete-painting', $painting);
         $painting->delete();
 
-        return redirect()->route('paintings.index')->with('success', 'Картина удалена');
+        return redirect()->route('users.show', $painting->user)->with('success', 'Картина удалена');
     }
+
+    // Восстановление мягко удалённой картины (PATCH /paintings/{painting}/restore) — только администратор
+    public function restore(Painting $painting)
+    {
+        Gate::authorize('restore-painting', $painting);
+        $painting->restore();
+
+        return back()->with('success', 'Картина «' . $painting->title . '» восстановлена');
+    }
+
+    // Удаление без возврата (DELETE /paintings/{painting}/force) — только администратор
+    public function forceDelete(Painting $painting)
+    {
+        Gate::authorize('force-delete-painting', $painting);
+        $image = $painting->image;
+        $painting->forceDelete();
+
+        if ($image && ! Painting::withTrashed()->where('image', $image)->exists()) {
+            Storage::disk('public')->delete($image);
+        }
+
+        return back()->with('success', 'Картина удалена навсегда');
+    }
+
         // Изменение размера изображения под вёрстку (600×400) и сохранение
     private function saveImage(UploadedFile $file): string
     {

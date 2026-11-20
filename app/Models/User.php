@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -17,8 +18,10 @@ class User extends Authenticatable
      *
      * @var list<string>
      */
+    // is_admin намеренно не в $fillable: его нельзя выставить через форму регистрации
     protected $fillable = [
         'name',
+        'username',
         'email',
         'password',
     ];
@@ -43,6 +46,18 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_admin' => 'boolean',
         ];
+    }
+
+    // Картины, добавленные пользователем (1 — N)
+    public function paintings(): HasMany
+    {
+        return $this->hasMany(Painting::class);
+    }
+
+    public function isAdmin(): bool
+    {
+        return (bool) $this->is_admin;
     }
 }

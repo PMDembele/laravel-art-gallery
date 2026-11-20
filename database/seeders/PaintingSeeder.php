@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Painting;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Storage;
 
 class PaintingSeeder extends Seeder
 {
@@ -64,6 +65,12 @@ class PaintingSeeder extends Seeder
 
         // firstOrCreate: повторный запуск сидера не создаёт дубликатов
         foreach ($paintings as $painting) {
+            // Копируем изображение из database/seeders/images в storage/app/public/paintings
+            $source = database_path('seeders/images/' . basename($painting['image']));
+            if (is_file($source) && ! Storage::disk('public')->exists($painting['image'])) {
+                Storage::disk('public')->put($painting['image'], file_get_contents($source));
+            }
+
             Painting::firstOrCreate(
                 ['title' => $painting['title'], 'author' => $painting['author']],
                 $painting

@@ -8,6 +8,10 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        $this->call(PaintingSeeder::class);
+        // Сначала картины, затем пользователи: UserSeeder назначает владельцев картинам без user_id
+        $this->call([
+            PaintingSeeder::class,
+            UserSeeder::class,
+        ]);
     }
 }

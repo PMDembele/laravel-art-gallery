@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.gallery')
 
 @section('title', 'Изменить картину')
 
