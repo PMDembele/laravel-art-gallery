@@ -24,8 +24,11 @@ class UserController extends Controller
 
         $paintings = $user->paintings()
             ->when($canSeeTrashed, fn ($q) => $q->withTrashed())
+            ->withCount('comments')
             ->latest()
             ->get();
+
+        $user->load(['friends' => fn ($q) => $q->orderBy('name')]);
 
         // Навигация «предыдущий / следующий пользователь» (в том же порядке, что и список)
         $users = User::orderBy('name')->get(['id', 'name', 'username']);

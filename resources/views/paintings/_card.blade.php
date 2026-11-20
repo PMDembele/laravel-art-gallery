@@ -10,6 +10,9 @@
             <p class="card-text">
                 <strong>Автор:</strong> {{ $painting->author }}<br>
                 <strong>Год:</strong> {{ $painting->year }}
+                @isset($painting->comments_count)
+                    <br><strong>Комментарии:</strong> {{ $painting->comments_count }}
+                @endisset
                 @if ($showOwner ?? true)
                     <br><strong>Добавил:</strong>
                     @if ($painting->user)

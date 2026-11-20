@@ -49,4 +49,72 @@
         </div>
     </div>
 </div>
+
+{{-- ЛР5. Комментарии к картине --}}
+<section class="card mt-4" id="comments">
+    <div class="card-body">
+        <h3 class="h4 mb-3">Комментарии <span class="badge text-bg-secondary">{{ $painting->comments->count() }}</span></h3>
+
+        @auth
+            @if (count($friendIds))
+                <p class="small text-muted mb-3">
+                    <span class="badge text-bg-success">★ друг</span> — комментарии ваших друзей подсвечены.
+                </p>
+            @endif
+        @endauth
+
+        @forelse ($painting->comments as $comment)
+            @php $fromFriend = in_array((int) $comment->user_id, array_map('intval', $friendIds), true); @endphp
+            <article id="comment-{{ $comment->id }}"
+                     class="comment border rounded p-3 mb-2 @if ($fromFriend) comment-friend border-success bg-success-subtle @endif">
+                <div class="d-flex justify-content-between align-items-start gap-2">
+                    <div>
+                        @if ($fromFriend)
+                            <span class="badge text-bg-success me-1" title="Комментарий друга">★ друг</span>
+                        @endif
+                        @auth
+                            <a href="{{ route('users.show', $comment->user) }}" class="fw-semibold">{{ $comment->user->name }}</a>
+                        @else
+                            <span class="fw-semibold">{{ $comment->user->name }}</span>
+                        @endauth
+                        @if ((int) $comment->user_id === (int) $painting->user_id)
+                            <span class="badge text-bg-light border">автор публикации</span>
+                        @endif
+                        <small class="text-muted ms-1">{{ $comment->created_at->format('d.m.Y H:i') }}</small>
+                    </div>
+                    @can('delete-comment', $comment)
+                        <form action="{{ route('comments.destroy', $comment) }}" method="POST"
+                              onsubmit="return confirm('Удалить комментарий?')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Удалить</button>
+                        </form>
+                    @endcan
+                </div>
+                <p class="mb-0 mt-2" style="white-space: pre-line">{{ $comment->body }}</p>
+            </article>
+        @empty
+            <p class="text-muted">Комментариев пока нет.</p>
+        @endforelse
+
+        @auth
+            @can('create-comment')
+                <form action="{{ route('comments.store', $painting) }}" method="POST" class="mt-3">
+                    @csrf
+                    <label for="body" class="form-label">Ваш комментарий</label>
+                    <textarea id="body" name="body" rows="3" maxlength="1000" required
+                              class="form-control @error('body') is-invalid @enderror">{{ old('body') }}</textarea>
+                    @error('body')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                    <button type="submit" class="btn btn-primary mt-2">Отправить</button>
+                </form>
+            @endcan
+        @else
+            <p class="mt-3 mb-0">
+                <a href="{{ route('login') }}">Войдите</a>, чтобы оставить комментарий.
+            </p>
+        @endauth
+    </div>
+</section>
 @endsection

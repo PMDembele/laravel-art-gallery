@@ -28,6 +28,10 @@
                 </li>
                 @auth
                     <li class="nav-item">
+                        <a class="nav-link @if (request()->routeIs('feed')) active @endif"
+                           href="{{ route('feed') }}">Лента друзей</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link @if (request()->routeIs('users.index')) active @endif"
                            href="{{ route('users.index') }}">Пользователи</a>
                     </li>

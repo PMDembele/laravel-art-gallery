@@ -12,6 +12,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             PaintingSeeder::class,
             UserSeeder::class,
+            SocialSeeder::class, // ЛР5: дружба и комментарии
         ]);
     }
 }

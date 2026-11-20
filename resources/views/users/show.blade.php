@@ -16,6 +16,18 @@
                 </a>
             @endforeach
         </div>
+
+        {{-- ЛР5. Друзья просматриваемого пользователя --}}
+        <div class="list-group shadow-sm">
+            <div class="list-group-item fw-semibold">Друзья ({{ $user->friends->count() }})</div>
+            @forelse ($user->friends as $friend)
+                <a href="{{ route('users.show', $friend) }}" class="list-group-item list-group-item-action small">
+                    {{ $friend->name }}
+                </a>
+            @empty
+                <div class="list-group-item text-muted small">Пока нет друзей</div>
+            @endforelse
+        </div>
     </aside>
 
     <section class="col-lg-9">
@@ -27,6 +39,9 @@
                     <span class="badge text-bg-warning fs-6 align-middle">админ</span>
                 @endif
             </h2>
+            <div class="d-flex flex-wrap align-items-center gap-2">
+                @include('users._friend_button', ['target' => $user])
+            </div>
             <div class="btn-group">
                 @if ($previous)
                     <a href="{{ route('users.show', $previous) }}" class="btn btn-outline-secondary">&larr; {{ $previous->name }}</a>

@@ -18,7 +18,7 @@ class PaintingController extends Controller
     // Список всех картин всех пользователей (GET /paintings)
     public function index()
     {
-        $paintings = Painting::with('user')->latest()->get();
+        $paintings = Painting::with('user')->withCount('comments')->latest()->get();
         return view('paintings.index', compact('paintings'));
     }
 
@@ -47,8 +47,12 @@ class PaintingController extends Controller
     // Страница с подробной информацией о картине (GET /paintings/{painting})
     public function show(Painting $painting)
     {
-        $painting->load('user');
-        return view('paintings.show', compact('painting'));
+        $painting->load(['user', 'comments.user']);
+
+        // ID друзей текущего пользователя — для подсветки их комментариев
+        $friendIds = auth()->user()?->friendIds() ?? [];
+
+        return view('paintings.show', compact('painting', 'friendIds'));
     }
 
     // Форма редактирования (GET /paintings/{painting}/edit) — автор или администратор

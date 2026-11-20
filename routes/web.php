@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\CommentController;
+use App\Http\Controllers\FriendController;
 use App\Http\Controllers\PaintingController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
@@ -37,6 +39,18 @@ Route::middleware('auth')->group(function () {
         ->withTrashed()->middleware('can:restore-painting,painting')->name('paintings.restore');
     Route::delete('/paintings/{painting}/force', [PaintingController::class, 'forceDelete'])
         ->withTrashed()->middleware('can:force-delete-painting,painting')->name('paintings.force-delete');
+
+    // ЛР5. Комментарии к картинам (вспомогательная сущность)
+    Route::post('/paintings/{painting}/comments', [CommentController::class, 'store'])
+        ->middleware('can:create-comment')->name('comments.store');
+    Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])
+        ->middleware('can:delete-comment,comment')->name('comments.destroy');
+
+    // ЛР5. Дружба (M — N) и лента друзей
+    Route::post('/users/{user:username}/friend', [FriendController::class, 'store'])
+        ->middleware('can:befriend,user')->name('friends.store');
+    Route::delete('/users/{user:username}/friend', [FriendController::class, 'destroy'])->name('friends.destroy');
+    Route::get('/feed', [FriendController::class, 'feed'])->name('feed');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
