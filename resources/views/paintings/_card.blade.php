@@ -1,7 +1,13 @@
 {{-- Карточка картины. Кнопки показываются только при наличии прав (проверка на уровне интерфейса) --}}
 <div class="col">
     <article class="card h-100 painting-card @if ($painting->trashed()) border-danger opacity-75 @endif">
-        <img src="{{ asset('storage/' . $painting->image) }}" class="card-img-top" alt="{{ $painting->title }}">
+        @if ($painting->image && \Illuminate\Support\Facades\Storage::disk('public')->exists($painting->image))
+            <img src="{{ asset('storage/' . $painting->image) }}" class="card-img-top" alt="{{ $painting->title }}">
+        @else
+            {{-- Файл изображения отсутствует — показываем заглушку вместо «битой» картинки --}}
+            <div class="card-img-top bg-secondary-subtle text-secondary d-flex align-items-center justify-content-center"
+                 style="aspect-ratio: 3 / 2">Нет изображения</div>
+        @endif
         <div class="card-body">
             @if ($painting->trashed())
                 <span class="badge text-bg-danger mb-2">Удалена {{ $painting->deleted_at->format('d.m.Y') }}</span>
