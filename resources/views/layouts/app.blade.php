@@ -1,27 +1,37 @@
 <!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>@yield('title', 'АртГалерея')</title>
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
-</head>
-<body>
-<div class="container py-4">
-    <nav class="navbar navbar-expand-md bg-white shadow-sm rounded mb-4 px-3">
-        <a class="navbar-brand d-flex align-items-center gap-2" href="{{ route('paintings.index') }}">
-            <span class="logo">🎨</span>
-            <span class="site-name">АртГалерея</span>
-        </a>
-        <a class="btn btn-primary ms-auto" href="{{ route('paintings.create') }}">Добавить</a>
-    </nav>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    @if (session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
-    @endif
+        <title>{{ config('app.name', 'Laravel') }}</title>
 
-    @yield('content')
-</div>
-<script src="{{ asset('js/app.js') }}"></script>
-</body>
+        <!-- Fonts -->
+        <link rel="preconnect" href="https://fonts.bunny.net">
+        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+
+        <!-- Scripts -->
+        <link rel="stylesheet" href="{{ mix('css/breeze.css') }}">
+        <script src="{{ mix('js/breeze.js') }}" defer></script>
+    </head>
+    <body class="font-sans antialiased">
+        <div class="min-h-screen bg-gray-100">
+            @include('layouts.navigation')
+
+            <!-- Page Heading -->
+            @isset($header)
+                <header class="bg-white shadow">
+                    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+                        {{ $header }}
+                    </div>
+                </header>
+            @endisset
+
+            <!-- Page Content -->
+            <main>
+                {{ $slot }}
+            </main>
+        </div>
+    </body>
 </html>
